@@ -20,10 +20,6 @@ type ResBody = {
   generatedMetaDescription: string;
 };
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
 }
@@ -44,6 +40,11 @@ function safeJsonParse<T>(text: string): T | null {
 }
 
 export async function POST(req: Request) {
+
+  const client = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+
   try {
     if (!process.env.OPENAI_API_KEY) {
       return NextResponse.json(

@@ -13,13 +13,14 @@ type ReqBody = {
   generateOutlineFirst?: boolean;
 };
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
 function sse(data: any) {
   return `data: ${JSON.stringify(data)}\n\n`;
 }
 
 export async function POST(req: Request) {
+
+  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
   if (!process.env.OPENAI_API_KEY) {
     return new Response(sse({ type: "error", message: "Missing OPENAI_API_KEY" }), {
       status: 500,
