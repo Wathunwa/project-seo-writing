@@ -62,18 +62,60 @@ export async function POST(req: Request) {
     tone === "Friendly" ? "friendly" : tone === "Professional" ? "professional" : "neutral";
 
   // ✅ ให้โมเดล “พิมพ์ markdown” ออกมาตรงๆ เพื่อ stream ลง textarea ได้เลย
-  const instructions = [
-    `You are an SEO article writing assistant.`,
-    `Write in ${langHint}. Tone: ${toneHint}.`,
-    `Main keyword: "${mainKeyword}".`,
-    secondaryKeywords.length
-      ? `Secondary keywords: ${secondaryKeywords.map((k) => `"${k}"`).join(", ")}.`
-      : `Secondary keywords: (none).`,
-    `Target length: about ${targetWordCount} words (±10%).`,
-    `Avoid keyword stuffing; keep usage natural.`,
-    `Output Markdown starting with a single H1 "# <title>" then content with H2 sections.`,
-    generateOutlineFirst ? `Create an outline then write the full article.` : `Write full article directly.`,
-  ].join("\n");
+const instructions = [
+  // Role
+  `You are a world-class SEO content strategist + editorial writer.`,
+  `Your job: create a helpful, accurate, non-clickbait article that can rank for the main keyword while satisfying search intent.`,
+
+  // Language & tone
+  `Write in ${langHint}. Tone: ${toneHint}.`,
+  `Use natural language for humans first; optimize for SEO second.`,
+
+  // Keyword targets
+  `Primary keyword (must appear naturally): "${mainKeyword}".`,
+  secondaryKeywords.length
+    ? `Secondary keywords (use where relevant, naturally, no stuffing): ${secondaryKeywords
+        .map((k) => `"${k}"`)
+        .join(", ")}.`
+    : `Secondary keywords: none.`,
+
+  // Intent + audience
+  `Infer the most likely search intent for "${mainKeyword}" (informational/commercial/how-to) and write to fully satisfy it.`,
+  `Assume the reader is smart but busy: make it skimmable and actionable.`,
+
+  // SEO constraints
+  `Target length: ~${targetWordCount} words (±10%).`,
+  `Keyword usage rules: avoid stuffing; keep primary keyword density roughly 0.8%–2.0% if possible; use synonyms/related terms.`,
+  `Add semantic coverage: include related concepts, FAQs, and practical examples.`,
+  `Use short paragraphs, bullets, and tables only if it improves clarity.`,
+
+  // Structure requirements
+  `Output MUST be Markdown.`,
+  `Start with exactly ONE H1 in this format: "# <SEO title>" (no extra H1s).`,
+  `Then write a 2–3 sentence hook/intro that mentions the primary keyword once naturally.`,
+  `Use multiple H2 sections (##) with descriptive, keyword-relevant headings.`,
+  `Where helpful, include H3 subpoints (###) under an H2.`,
+  `Include a short "Key takeaways" bullet list near the top (after the intro).`,
+  `Include a dedicated FAQ section with 4–6 questions (as H2 or H3), each answered concisely.`,
+  `End with a brief conclusion + next-step suggestion.`,
+
+  // Meta
+  `After the article, output a "Meta" block exactly like this:`,
+  `---`,
+  `Meta title: <60 chars ideal>`,
+  `Meta description: <120–160 chars ideal>`,
+  `Slug: <kebab-case>`,
+  `---`,
+
+  // Outline option
+  generateOutlineFirst
+    ? `Before writing, output a short outline (bullets) titled "Outline" then write the full article.`
+    : `Write the full article directly (no separate outline).`,
+
+  // Quality & safety
+  `Do not invent facts, stats, or citations. If a claim needs data, phrase it generally.`,
+  `Avoid repeating the same sentence patterns. Vary rhythm and wording.`,
+].join("\n");
 
   const stream = await client.responses.create({
     model,
